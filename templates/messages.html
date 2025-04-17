@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Сообщения - Telegram Бот{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">История сообщений</h2>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Пользователь</th>
+                        <th>Сообщение</th>
+                        <th>Дата</th>
+                        <th>Тип</th>
+                        <th>Кнопка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr>
+                        <td>{{ message.id }}</td>
+                        <td>
+                            {% if message.username %}
+                                {{ message.username }}
+                            {% else %}
+                                {{ message.user_id }}
+                            {% endif %}
+                        </td>
+                        <td>{{ message.text|truncate(50) }}</td>
+                        <td>{{ message.timestamp }}</td>
+                        <td>
+                            {% if message.is_incoming %}
+                            <span class="badge bg-primary">Входящее</span>
+                            {% else %}
+                            <span class="badge bg-success">Исходящее</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if message.is_button_press %}
+                            <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Ответ: {{ message.button_response }}">
+                                <i class="fas fa-keypad"></i> {{ message.button_text }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <!-- <td>
+                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewMessageModal" 
+                                    data-message-id="{{ message.id }}"
+                                    data-message-user-id="{{ message.user_id }}"
+                                    data-message-text="{{ message.text }}"
+                                    data-message-timestamp="{{ message.timestamp }}"
+                                    data-message-is-button="{{ message.is_button_press|default(false)|string }}"
+                                    {% if message.is_button_press %}
+                                    data-message-button-text="{{ message.button_text }}"
+                                    data-message-button-response="{{ message.button_response }}"
+                                    {% endif %}
+                                    data-message-username="{{ message.username|default('') }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td> -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Модальное окно просмотра сообщения -->
+<div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewMessageModalLabel">Просмотр сообщения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Пользователь</label>
+                    <p class="form-control-static" id="view-username"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">ID пользователя</label>
+                    <p class="form-control-static" id="view-user-id"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Дата и время</label>
+                    <p class="form-control-static" id="view-timestamp"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Сообщение</label>
+                    <div class="p-3 border rounded" id="view-message-text"></div>
+                </div>
+                <!-- Блок информации о кнопке -->
+                <div id="button-info-block" class="mb-3 d-none">
+                    <label class="form-label">Информация о кнопке</label>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Текст кнопки:</strong> <span id="view-button-text"></span>
+                            </div>
+                            <div>
+                                <strong>Ответ на кнопку:</strong> <span id="view-button-response"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#replyModal" 
+                        onclick="document.getElementById('replyUserId').value = document.getElementById('view-user-id').textContent">
+                    Ответить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для отправки сообщения пользователю -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">Отправить сообщение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('send_message') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="user_id" id="replyUserId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Текст сообщения</label>
+                        <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="attachment" class="form-label">Прикрепить файл (опционально)</label>
+                        <input class="form-control" type="file" id="attachment" name="attachment">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для рассылки -->
+<div class="modal fade" id="broadcastModal" tabindex="-1" aria-labelledby="broadcastModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="broadcastModalLabel">Массовая рассылка</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('send_broadcast') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="broadcast-message" class="form-label">Текст сообщения</label>
+                        <textarea class="form-control" id="broadcast-message" name="message" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="broadcast-attachment" class="form-label">Прикрепить файл (опционально)</label>
+                        <input class="form-control" type="file" id="broadcast-attachment" name="attachment">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Отправить всем</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Инициализация tooltip
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltips].map(tooltip => new bootstrap.Tooltip(tooltip));
+    });
+
+    // Инициализация модального окна просмотра сообщения
+    document.getElementById('viewMessageModal').addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        
+        // Получаем данные из атрибутов
+        var userId = button.getAttribute('data-message-user-id');
+        var messageText = button.getAttribute('data-message-text');
+        var timestamp = button.getAttribute('data-message-timestamp');
+        var isButton = button.getAttribute('data-message-is-button') === 'True' || button.getAttribute('data-message-is-button') === 'true';
+        var username = button.getAttribute('data-message-username');
+        
+        // Заполняем модальное окно данными
+        document.getElementById('view-user-id').textContent = userId;
+        document.getElementById('view-username').textContent = username || userId;
+        document.getElementById('view-timestamp').textContent = timestamp;
+        document.getElementById('view-message-text').textContent = messageText;
+        
+        // Отображаем или скрываем блок с информацией о кнопке
+        var buttonInfoBlock = document.getElementById('button-info-block');
+        if (isButton) {
+            var buttonText = button.getAttribute('data-message-button-text');
+            var buttonResponse = button.getAttribute('data-message-button-response');
+            
+            document.getElementById('view-button-text').textContent = buttonText;
+            document.getElementById('view-button-response').textContent = buttonResponse;
+            buttonInfoBlock.classList.remove('d-none');
+        } else {
+            buttonInfoBlock.classList.add('d-none');
+        }
+    });
+</script>
+{% endblock %} 

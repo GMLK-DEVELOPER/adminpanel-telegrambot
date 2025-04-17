@@ -1,0 +1,223 @@
+/* Основные стили для админ-панели */
+:root {
+    --sidebar-width: 250px;
+    --telegram-blue: #0088cc;
+    --telegram-blue-hover: #006699;
+    --hover-red: #ff0000;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+/* Боковая панель */
+.sidebar {
+    width: var(--sidebar-width);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background-color: #212529;
+    color: #fff;
+    padding-top: 20px;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-header img {
+    max-width: 50px;
+    margin-bottom: 10px;
+}
+
+.sidebar-menu {
+    padding: 20px 0;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 12px 20px;
+    color: #adb5bd;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.sidebar-menu a:hover, .sidebar-menu a.active {
+    color: var(--hover-red);
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+.sidebar-menu a i {
+    width: 25px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+/* Основной контент */
+.content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+/* Навигационная панель */
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Карточки */
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 8px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+
+/* Кнопки */
+.btn-tg {
+    background-color: var(--telegram-blue);
+    border-color: var(--telegram-blue);
+    color: white;
+}
+
+.btn-tg:hover {
+    background-color: var(--hover-red);
+    border-color: var(--hover-red);
+    color: white;
+}
+
+/* Статистика */
+.stat-card {
+    border-left: 4px solid var(--telegram-blue);
+}
+
+/* Контейнеры для графиков */
+.chart-container {
+    height: 300px;
+    margin-bottom: 30px;
+}
+
+/* Стили для таблицы пользователей */
+.user-table img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Стиль для наведения на строки таблицы */
+.table tr:hover {
+    background-color: var(--hover-red) !important;
+    color: white !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Формы сообщений */
+.message-form textarea {
+    resize: none;
+}
+
+/* Вкладки */
+.tab-pane {
+    padding: 20px 0;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: calc(-1 * var(--sidebar-width));
+    }
+    .content {
+        margin-left: 0;
+    }
+    .sidebar.active {
+        margin-left: 0;
+    }
+    .content.active {
+        margin-left: var(--sidebar-width);
+    }
+}
+
+/* Дополнительные стили для интерфейса */
+.card-hover:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+    border-color: var(--hover-red);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.2);
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-online {
+    background-color: #4caf50;
+}
+
+.status-offline {
+    background-color: #f44336;
+}
+
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-md {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Анимации загрузки */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 4px solid var(--telegram-blue);
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для уведомлений */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    padding: 3px 6px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.7em;
+} 

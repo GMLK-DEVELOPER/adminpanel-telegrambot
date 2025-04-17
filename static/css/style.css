@@ -1,0 +1,233 @@
+:root {
+    --tg-blue: #0088cc;
+    --tg-blue-hover: #006699;
+    --dark-bg: #1a1a1a;
+    --dark-card: #2d2d2d;
+    --dark-text: #e0e0e0;
+    --dark-text-muted: #a0a0a0;
+    --dark-border: #404040;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    background-color: var(--dark-card) !important;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--dark-text);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: var(--tg-blue);
+}
+
+.card {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+.table {
+    color: var(--dark-text);
+}
+
+.table thead th {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+.table td {
+    border-color:#dc3545;
+}
+
+.form-control {
+    background-color: var(--dark-bg);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.form-control:focus {
+    background-color: var(--dark-bg);
+    border-color: var(--tg-blue);
+    color: var(--dark-text);
+}
+
+.btn-tg {
+    background-color: var(--tg-blue);
+    color: white;
+}
+
+.btn-tg:hover {
+    background-color: var(--tg-blue-hover);
+    color: white;
+}
+
+.btn-outline-primary {
+    color: var(--tg-blue);
+    border-color: var(--tg-blue);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--tg-blue);
+    color: white;
+}
+
+.footer {
+    background-color: var(--dark-card) !important;
+    border-top: 1px solid var(--dark-border);
+}
+
+.text-muted {
+    color: var(--dark-text-muted) !important;
+}
+
+.alert {
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.2);
+    border-color: #ffc107;
+    color: #ffc107;
+}
+
+.alert-info {
+    background-color: rgba(23, 162, 184, 0.2);
+    border-color: #17a2b8;
+    color: #17a2b8;
+}
+
+/* Стили для графиков */
+.chart-container {
+    background-color: var(--dark-card);
+    padding: 15px;
+    border-radius: 5px;
+}
+
+/* Стили для статуса бота */
+.bot-status {
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+
+/* Стили для карточек статистики */
+.stat-card {
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Стили для таблиц */
+.table-responsive {
+    background-color: var(--dark-card);
+    border-radius: 5px;
+    padding: 1rem;
+}
+
+/* Стили для форм */
+.form-label {
+    color: var(--dark-text);
+}
+
+/* Стили для модальных окон */
+.modal-content {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--dark-border);
+}
+
+/* Стили для пагинации */
+.pagination .page-link {
+    background-color: var(--dark-card);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--tg-blue);
+    border-color: var(--tg-blue);
+    color: white;
+}
+
+.pagination .active .page-link {
+    background-color: var(--tg-blue);
+    border-color: var(--tg-blue);
+}
+
+/* Стили для выпадающих списков */
+.dropdown-menu {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+.dropdown-item {
+    color: var(--dark-text);
+}
+
+.dropdown-item:hover {
+    background-color: var(--tg-blue);
+    color: white;
+}
+
+/* Стили для подсказок */
+.tooltip .tooltip-inner {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+/* Стили для скроллбара */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--dark-border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--tg-blue);
+} 

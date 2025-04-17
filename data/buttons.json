@@ -1,0 +1,26 @@
+[
+    {
+        "id": "1",
+        "text": "support",
+        "response": "sadasdasd",
+        "url": "https://testweb.friendlyecopets.com",
+        "url_text": "cursuri",
+        "image_path": "button_images\\button_1_20250417_124910_photo_2025-04-17_12-48-30.jpg"
+    },
+    {
+        "id": "2",
+        "text": "aksldlkajsdlk",
+        "response": "asnd,mans,dmn,m",
+        "url": "https://testweb.friendlyecopets.com",
+        "url_text": "",
+        "image_path": "button_images\\button_2_20250417_131733_photo_2025-04-17_12-48-30.jpg"
+    },
+    {
+        "id": "3",
+        "text": "еуые",
+        "response": "sadnlasdlmansldnasd",
+        "url": "https://testweb.friendlyecopets.com",
+        "url_text": "",
+        "image_path": "button_images/button_3_20250417_132258_photo_2025-04-17_12-48-30.jpg"
+    }
+]

@@ -1,0 +1,27 @@
+<!-- Боковое меню -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <img src="https://telegram.org/img/t_logo.svg" alt="Telegram Logo">
+        <h5>Админ-панель</h5>
+    </div>
+    <div class="sidebar-menu">
+        <a href="{{ url_for('dashboard') }}" class="{% if active_page == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Панель управления
+        </a>
+        <a href="{{ url_for('users_page') }}" class="{% if active_page == 'users' %}active{% endif %}">
+            <i class="fas fa-users"></i> Пользователи
+        </a>
+        <a href="{{ url_for('messages_page') }}" class="{% if active_page == 'messages' %}active{% endif %}">
+            <i class="fas fa-envelope"></i> Сообщения
+        </a>
+        <a href="{{ url_for('settings_page') }}" class="{% if active_page == 'settings' %}active{% endif %}">
+            <i class="fas fa-cog"></i> Настройки
+        </a>
+        <a href="{{ url_for('database_page') }}" class="{% if active_page == 'database' %}active{% endif %}">
+            <i class="fas fa-database"></i> База данных
+        </a>
+        <a href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i> Выход
+        </a>
+    </div>
+</div> 

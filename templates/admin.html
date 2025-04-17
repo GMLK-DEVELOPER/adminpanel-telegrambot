@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель Telegram бота</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --telegram-blue: #0088cc;
+            --telegram-blue-hover: #006699;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background-color: #212529;
+            color: #fff;
+            padding-top: 20px;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        .sidebar-header img {
+            max-width: 50px;
+            margin-bottom: 10px;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #adb5bd;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-menu a i {
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        .content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .btn-tg {
+            background-color: var(--telegram-blue);
+            border-color: var(--telegram-blue);
+            color: white;
+        }
+        .btn-tg:hover {
+            background-color: var(--telegram-blue-hover);
+            border-color: var(--telegram-blue-hover);
+            color: white;
+        }
+        .stat-card {
+            border-left: 4px solid var(--telegram-blue);
+        }
+        .chart-container {
+            height: 300px;
+            margin-bottom: 30px;
+        }
+        .user-table img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+            .content {
+                margin-left: 0;
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .content.active {
+                margin-left: var(--sidebar-width);
+            }
+        }
+        .message-form textarea {
+            resize: none;
+        }
+        .tab-pane {
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковое меню -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://telegram.org/img/t_logo.svg" alt="Telegram Logo">
+            <h5>Админ-панель</h5>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#dashboard" class="nav-link active" data-bs-toggle="tab"><i class="fas fa-tachometer-alt"></i> Панель управления</a>
+            <a href="#users" class="nav-link" data-bs-toggle="tab"><i class="fas fa-users"></i> Пользователи</a>
+            <a href="#messages" class="nav-link" data-bs-toggle="tab"><i class="fas fa-envelope"></i> Сообщения</a>
+            <a href="#settings" class="nav-link" data-bs-toggle="tab"><i class="fas fa-cog"></i> Настройки</a>
+            <a href="#database" class="nav-link" data-bs-toggle="tab"><i class="fas fa-database"></i> База данных</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Выход</a>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Верхняя навигационная панель -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+            <div class="container-fluid">
+                <button class="btn" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <span class="navbar-brand mb-0 h1">{{ bot_name }}</span>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user"></i> {{ username }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Выход
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Контент вкладок -->
+        <div class="tab-content">
+            <!-- Панель управления -->
+            <div class="tab-pane active" id="dashboard">
+                <h2 class="mb-4">Панель управления</h2>
+                
+                <!-- Статистика -->
+        <div class="row">
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-muted">Всего пользователей</h6>
+                                        <h2 class="card-text">{{ users_count }}</h2>
+                                    </div>
+                                    <i class="fas fa-users fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                    <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-muted">Новых сегодня</h6>
+                                        <h2 class="card-text">{{ new_users_today }}</h2>
+                                    </div>
+                                    <i class="fas fa-user-plus fa-2x text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                                    <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-muted">Активных сегодня</h6>
+                                        <h2 class="card-text">{{ active_users_today }}</h2>
+                                    </div>
+                                    <i class="fas fa-chart-line fa-2x text-info"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-muted">Сообщений сегодня</h6>
+                                        <h2 class="card-text">{{ messages_today }}</h2>
+                                    </div>
+                                    <i class="fas fa-envelope fa-2x text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Графики -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Активность пользователей
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="userActivityChart"></canvas>
+                                </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Новые пользователи
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="newUsersChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Быстрые действия -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                Быстрые действия
+                                    </div>
+                                    <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <form class="message-form" action="{{ url_for('send_broadcast') }}" method="post" enctype="multipart/form-data">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                            <div class="mb-3">
+                                                <label for="broadcast-message" class="form-label">Отправить сообщение всем пользователям</label>
+                                                <textarea class="form-control" id="broadcast-message" name="message" rows="3" required></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="attachment" class="form-label">Прикрепить файл (опционально)</label>
+                                                <input class="form-control" type="file" id="attachment" name="attachment">
+                                            </div>
+                                            <button type="submit" class="btn btn-tg">Отправить всем</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Быстрые ссылки</label>
+                                            <div class="d-grid gap-2">
+                                                <a href="#users" class="btn btn-outline-primary" data-bs-toggle="tab">Управление пользователями</a>
+                                                <a href="#settings" class="btn btn-outline-primary" data-bs-toggle="tab">Настройки бота</a>
+                                                <a href="#database" class="btn btn-outline-primary" data-bs-toggle="tab">Управление базой данных</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пользователи -->
+            <div class="tab-pane" id="users">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Управление пользователями</h2>
+                    <div>
+                        <button class="btn btn-tg" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="fas fa-user-plus"></i> Добавить пользователя
+                        </button>
+                            </div>
+                        </div>
+                        
+                                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover user-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Пользователь</th>
+                                        <th>Дата регистрации</th>
+                                        <th>Статус</th>
+                                        <th>Сообщений</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ user.avatar|default('https://via.placeholder.com/36') }}" class="me-2" alt="Avatar">
+                                                <div>
+                                                    <div>{{ user.username|default('Без имени') }}</div>
+                                                    <small class="text-muted">{{ user.full_name|default('') }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.created_at|default('') }}</td>
+                                        <td>
+                                            {% if user.is_active %}
+                                            <span class="badge bg-success">Активен</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">Неактивен</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.message_count|default(0) }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editUser('{{ user.id }}')">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('{{ user.id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#sendMessageModal" data-user-id="{{ user.id }}">
+                                                    <i class="fas fa-envelope"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                                    </div>
+
+            <!-- Сообщения -->
+            <div class="tab-pane" id="messages">
+                <h2 class="mb-4">История сообщений</h2>
+                
+                <div class="card">
+                                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                        <th>ID</th>
+                                        <th>Пользователь</th>
+                                        <th>Сообщение</th>
+                                        <th>Дата</th>
+                                        <th>Тип</th>
+                                        <th>Действия</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                    {% for message in messages %}
+                                    <tr>
+                                        <td>{{ message.id }}</td>
+                                        <td>{{ message.user_id }}</td>
+                                        <td>{{ message.text|truncate(50) }}</td>
+                                        <td>{{ message.timestamp }}</td>
+                                        <td>
+                                            {% if message.is_incoming %}
+                                            <span class="badge bg-primary">Входящее</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Исходящее</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewMessageModal" data-message-id="{{ message.id }}">
+                                                <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Настройки -->
+            <div class="tab-pane" id="settings">
+                <h2 class="mb-4">Настройки бота</h2>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <form action="{{ url_for('save_settings') }}" method="post">
+                            <div class="mb-3">
+                                <label for="bot_token" class="form-label">Токен бота</label>
+                                <input type="text" class="form-control" id="bot_token" name="bot_token" value="{{ settings.bot_token|default('') }}">
+                                <div class="form-text">Токен получен от @BotFather</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="bot_name" class="form-label">Имя бота</label>
+                                <input type="text" class="form-control" id="bot_name" name="bot_name" value="{{ settings.bot_name|default('') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="welcome_message" class="form-label">Приветственное сообщение</label>
+                                <textarea class="form-control" id="welcome_message" name="welcome_message" rows="3">{{ settings.welcome_message|default('') }}</textarea>
+                                <div class="form-text">Сообщение, которое будет отправлено новым пользователям</div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="auto_reply" name="auto_reply" {% if settings.auto_reply %}checked{% endif %}>
+                                <label class="form-check-label" for="auto_reply">Включить автоматические ответы</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin_id" class="form-label">ID администратора</label>
+                                <input type="text" class="form-control" id="admin_id" name="admin_id" value="{{ settings.admin_id|default('') }}">
+                                <div class="form-text">Telegram ID администратора бота</div>
+                            </div>
+                            <button type="submit" class="btn btn-tg">Сохранить настройки</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- База данных -->
+            <div class="tab-pane" id="database">
+                <h2 class="mb-4">Управление базой данных</h2>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Экспорт/Импорт данных
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <a href="{{ url_for('export_data') }}" class="btn btn-tg">
+                                        <i class="fas fa-download"></i> Экспорт данных
+                                    </a>
+                                </div>
+                                <form action="{{ url_for('import_data') }}" method="post" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="import_file" class="form-label">Импорт данных</label>
+                                        <input class="form-control" type="file" id="import_file" name="import_file" accept=".json">
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-upload"></i> Импортировать
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Действия с базой данных
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-3">
+                                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#clearDatabaseModal">
+                                        <i class="fas fa-trash"></i> Очистить базу данных
+                                    </button>
+                                    <button class="btn btn-outline-warning" id="backup-btn">
+                                        <i class="fas fa-save"></i> Создать резервную копию
+                                    </button>
+                                    <button class="btn btn-outline-info" id="optimize-btn">
+                                        <i class="fas fa-broom"></i> Оптимизировать базу данных
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальные окна -->
+    <!-- Модальное окно отправки сообщения пользователю -->
+    <div class="modal fade" id="sendMessageModal" tabindex="-1" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sendMessageModalLabel">Отправить сообщение пользователю</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('send_message') }}" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" id="user_id" name="user_id">
+                        <div class="mb-3">
+                            <label for="message-text" class="form-label">Сообщение</label>
+                            <textarea class="form-control" id="message-text" name="message" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message-attachment" class="form-label">Прикрепить файл (опционально)</label>
+                            <input class="form-control" type="file" id="message-attachment" name="attachment">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-tg">Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно очистки базы данных -->
+    <div class="modal fade" id="clearDatabaseModal" tabindex="-1" aria-labelledby="clearDatabaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clearDatabaseModalLabel">Подтверждение</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">Вы уверены, что хотите очистить базу данных? Это действие нельзя отменить!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <a href="{{ url_for('clear_database') }}" class="btn btn-danger">Очистить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Активация Bootstrap табов
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация табов Bootstrap
+            var triggerTabList = [].slice.call(document.querySelectorAll('.sidebar-menu a[data-bs-toggle="tab"]'));
+            triggerTabList.forEach(function(triggerEl) {
+                // Создаем Bootstrap Tab объект
+                var tabTrigger = new bootstrap.Tab(triggerEl);
+                
+                // Добавляем обработчик клика
+                triggerEl.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                    
+                    // Делаем ссылку активной в боковом меню
+                    triggerTabList.forEach(function(el) {
+                        el.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        // Переключение бокового меню
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.content').classList.toggle('active');
+        });
+
+        // Инициализация модального окна отправки сообщения
+        var sendMessageModal = document.getElementById('sendMessageModal');
+        if (sendMessageModal) {
+            sendMessageModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var userId = button.getAttribute('data-user-id');
+                var userIdInput = document.getElementById('user_id');
+                userIdInput.value = userId;
+            });
+        }
+
+        // Инициализация графиков на панели управления
+        window.onload = function() {
+            // График активности пользователей
+            var activityCtx = document.getElementById('userActivityChart').getContext('2d');
+            var activityChart = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ chart_labels|tojson|safe }},
+                    datasets: [{
+                        label: 'Активные пользователи',
+                        data: {{ activity_data|tojson|safe }},
+                        backgroundColor: 'rgba(0, 136, 204, 0.2)',
+                        borderColor: 'rgba(0, 136, 204, 1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // График новых пользователей
+            var newUsersCtx = document.getElementById('newUsersChart').getContext('2d');
+            var newUsersChart = new Chart(newUsersCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ chart_labels|tojson|safe }},
+                    datasets: [{
+                        label: 'Новые пользователи',
+                        data: {{ new_users_data|tojson|safe }},
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        };
+
+        // Функции для обработки действий с пользователями
+        function editUser(userId) {
+            // Реализация редактирования пользователя
+            console.log('Редактирование пользователя: ' + userId);
+            // Здесь можно добавить код для открытия модального окна редактирования
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Вы уверены, что хотите удалить этого пользователя?')) {
+                // Создаем форму динамически
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete_user/${userId}`;
+                
+                // Добавляем CSRF токен
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token }}';
+                form.appendChild(csrfInput);
+                
+                // Добавляем форму в документ и отправляем
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Обработчики для кнопок в разделе базы данных
+        document.getElementById('backup-btn').addEventListener('click', function() {
+            // Создаем форму динамически
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/backup_database';
+            
+            // Добавляем CSRF токен
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+            
+            // Добавляем форму в документ и отправляем
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        document.getElementById('optimize-btn').addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите оптимизировать базу данных?')) {
+                // Создаем форму динамически
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/optimize_database';
+                
+                // Добавляем CSRF токен
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token }}';
+                form.appendChild(csrfInput);
+                
+                // Добавляем форму в документ и отправляем
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    </script>
+</body>
+</html>
+            

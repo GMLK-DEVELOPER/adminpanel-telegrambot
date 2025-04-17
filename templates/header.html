@@ -1,0 +1,17 @@
+<!-- Верхняя навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+    <div class="container-fluid">
+        <button class="btn" id="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="navbar-brand mb-0 h1">{{ bot_name }}</span>
+        <div class="d-flex">
+            <span class="navbar-text me-3">
+                <i class="fas fa-user"></i> {{ username }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-sign-out-alt"></i> Выход
+            </a>
+        </div>
+    </div>
+</nav> 

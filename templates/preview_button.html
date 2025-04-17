@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Предпросмотр кнопки{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Предпросмотр кнопки</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Предпросмотр кнопки
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Текст кнопки:</strong>
+                        <div class="btn btn-outline-primary mt-2">{{ button.text }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Ответ бота:</strong>
+                        <div class="alert alert-light">{{ button.response }}</div>
+                    </div>
+                    
+                    {% if button.url %}
+                    <div class="mb-3">
+                        <strong>Ссылка:</strong>
+                        <div class="mt-2">
+                            <a href="{{ button.url }}" target="_blank">{{ button.url_text or button.url }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Как это будет выглядеть в Telegram
+                </div>
+                <div class="card-body">
+                    <div class="telegram-style">
+                        <div class="button-preview">{{ button.text }}</div>
+                        <div class="response-preview">
+                            <span style="margin-right:10px;">🤖</span>
+                            {{ button.response }}
+                            
+                            {% if button.url %}
+                            <div class="mt-2">
+                                <a href="{{ button.url }}" target="_blank" style="color: #2481cc;">{{ button.url_text or button.url }}</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button type="button" class="btn btn-secondary" onclick="window.close()">Закрыть</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .telegram-style { 
+        background-color: #f5f5f5; 
+        border-radius: 8px; 
+        padding: 15px; 
+        margin-top: 20px; 
+    }
+    .button-preview {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px 20px;
+        text-align: center;
+        margin: 10px 0;
+        cursor: pointer;
+    }
+    .response-preview {
+        background-color: white;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %} 

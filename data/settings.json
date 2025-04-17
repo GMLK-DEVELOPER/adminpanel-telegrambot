@@ -1,0 +1,10 @@
+{
+    "bot_token": "7726039642:AAHVHevAO30CzWAA1WiqekhYld7Or2glrWw",
+    "bot_name": "Telegram Bot",
+    "welcome_message": "Привет! Я ваш бот.a",
+    "auto_reply": false,
+    "admin_id": "762139684",
+    "bot_username": "SWAservicepay_bot",
+    "external_domain": "127.0.0.1:5000",
+    "auto_button_response_template": "Автоматический ответ на команду {command}"
+}

@@ -1,0 +1,42 @@
+[
+    {
+        "id": 762139684,
+        "username": "yuliitezary",
+        "full_name": "Iulian🫥",
+        "created_at": "2025-04-15T17:44:07.605574",
+        "is_active": true,
+        "last_activity": "2025-04-17T13:23:07.494094",
+        "message_count": 35,
+        "avatar": "avatars/762139684.jpg"
+    },
+    {
+        "id": 7766232942,
+        "username": "Без имени",
+        "full_name": "Лол",
+        "avatar": "avatars/7766232942.jpg",
+        "created_at": "2025-04-16T11:09:44.806398",
+        "is_active": true,
+        "last_activity": "2025-04-17T10:51:21.145369",
+        "message_count": 2
+    },
+    {
+        "id": 2042803150,
+        "username": "Без имени",
+        "full_name": "Pavel",
+        "avatar": "avatars/2042803150.jpg",
+        "created_at": "2025-04-17T10:19:58.273465",
+        "is_active": true,
+        "last_activity": "2025-04-17T12:50:59.996776",
+        "message_count": 5
+    },
+    {
+        "id": 1573718740,
+        "username": "viorica_ppc",
+        "full_name": "Viorica",
+        "avatar": "avatars/1573718740.jpg",
+        "created_at": "2025-04-17T13:23:50.707004",
+        "is_active": true,
+        "last_activity": "2025-04-17T13:24:00.540903",
+        "message_count": 3
+    }
+]

@@ -1,0 +1,572 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление кнопками - Telegram Бот{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Управление кнопками</h2>
+    
+    <!-- Форма добавления новой кнопки -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Добавить новую кнопку
+        </div>
+        <div class="card-body">
+            <form id="addButtonForm" action="{{ url_for('add_button') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group mb-3">
+                    <label for="text">Текст кнопки</label>
+                    <input type="text" class="form-control" id="text" name="text" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="response">Ответ бота</label>
+                    <textarea class="form-control" id="response" name="response" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="image">Прикрепить изображение (опционально)</label>
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    <small class="text-muted">Изображение будет отправлено пользователю вместе с ответом бота. Поддерживаемые форматы: JPG, PNG, GIF.</small>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="url">Добавить ссылку (опционально)</label>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="url" name="url" placeholder="https://example.com">
+                        <input type="text" class="form-control" id="url_text" name="url_text" placeholder="Текст ссылки">
+                    </div>
+                    <small class="text-muted">Эта ссылка будет добавлена в конец ответа бота</small>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-warning me-2" onclick="openPreviewInNewWindow()">Предпросмотр (серверный)</button>
+                    <button type="button" class="btn btn-secondary me-2" onclick="previewButton()">Предпросмотр (быстрый)</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+                
+                <div id="previewSection" class="preview-section mb-3" style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            Предпросмотр
+                        </div>
+                        <div class="card-body">
+                            <div class="preview-button mb-2">
+                                <strong>Кнопка:</strong>
+                                <div id="buttonPreviewText" class="btn btn-outline-primary preview-button-text" style="margin-top: 10px;"></div>
+                            </div>
+                            <div class="preview-response">
+                                <strong>Ответ бота:</strong>
+                                <div id="responsePreviewText" class="alert alert-light preview-response-text" style="margin-top: 10px;"></div>
+                            </div>
+                            <div id="previewImageContainer" class="preview-image" style="display: none; margin-top: 10px;">
+                                <strong>Изображение:</strong>
+                                <div style="margin-top: 10px;">
+                                    <img id="previewImage" src="" alt="Предпросмотр изображения" class="img-fluid" style="max-width: 100%; max-height: 200px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список существующих кнопок -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            Существующие кнопки
+        </div>
+        <div class="card-body">
+            {% if buttons %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Текст кнопки</th>
+                                <th>Ответ бота</th>
+                                <th>Изображение</th>
+                                <th>Ссылка</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for button in buttons %}
+                            <tr>
+                                <td>{{ button.text }}</td>
+                                <td>{{ button.response }}</td>
+                                <td>
+                                    {% if button.image_path %}
+                                    <img src="{{ url_for('static', filename=button.image_path) }}" alt="Изображение кнопки" class="img-thumbnail" style="max-height: 80px;">
+                                    {% else %}
+                                    Нет
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if button.url %}
+                                    <a href="{{ button.url }}" target="_blank">{{ button.url_text or button.url }}</a>
+                                    {% else %}
+                                    Нет
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-warning" 
+                                            data-id="{{ button.id }}"
+                                            data-text="{{ button.text|replace('"', '&quot;')|replace("'", "&#39;") }}" 
+                                            data-response="{{ button.response|replace('"', '&quot;')|replace("'", "&#39;") }}"
+                                            data-url="{{ button.url|default('', true)|replace('"', '&quot;')|replace("'", "&#39;") }}"
+                                            data-url-text="{{ button.url_text|default('', true)|replace('"', '&quot;')|replace("'", "&#39;") }}"
+                                            data-image-path="{{ button.image_path|default('', true) }}"
+                                            onclick="editButton(this)">
+                                        Редактировать
+                                    </button>
+                                    <form action="{{ url_for('delete_button', button_id=button.id) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Вы уверены, что хотите удалить эту кнопку?')">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center text-muted">Кнопки еще не добавлены</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования -->
+<div class="modal fade" id="editButtonModal" tabindex="-1" aria-labelledby="editButtonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editButtonModalLabel">Редактирование кнопки</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editButtonForm" action="" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" id="editButtonId" name="id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="editText" class="form-label">Текст кнопки</label>
+                        <input type="text" class="form-control" id="editText" name="text" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editResponse" class="form-label">Ответ бота</label>
+                        <textarea class="form-control" id="editResponse" name="response" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editImage" class="form-label">Изображение (опционально)</label>
+                        <div id="currentImageContainer" style="display: none; margin-bottom: 10px;">
+                            <p>Текущее изображение:</p>
+                            <img id="currentImage" src="" alt="Текущее изображение" style="max-width: 200px; max-height: 200px;">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="removeImage" name="remove_image">
+                                <label class="form-check-label" for="removeImage">
+                                    Удалить изображение
+                                </label>
+                            </div>
+                        </div>
+                        <input type="file" class="form-control" id="editImage" name="image" accept="image/*">
+                        <small class="form-text text-muted">Поддерживаемые форматы: JPG, PNG, GIF. До 5 МБ.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editUrl" class="form-label">Ссылка (опционально)</label>
+                        <input type="url" class="form-control" id="editUrl" name="url" placeholder="https://example.com">
+                        <small class="form-text text-muted">Ссылка будет добавлена в ответ бота</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editUrlText" class="form-label">Текст ссылки (опционально)</label>
+                        <input type="text" class="form-control" id="editUrlText" name="url_text" placeholder="Нажмите сюда">
+                        <small class="form-text text-muted">Отображаемый текст для ссылки</small>
+                    </div>
+                </form>
+                
+                <div id="editPreviewSection" style="display: none;">
+                    <h5 class="mt-4">Предпросмотр</h5>
+                    <div class="card">
+                            <div class="card-body">
+                            <h5 class="card-title" id="editPreviewTitle"></h5>
+                            <p class="card-text" id="editPreviewResponse"></p>
+                            <div id="editPreviewImageContainer" style="display: none;">
+                                <img id="editPreviewImage" src="" alt="Предпросмотр изображения" style="max-width: 100%; margin-top: 10px;">
+                                </div>
+                            <div id="editPreviewLinkContainer" style="display: none; margin-top: 10px;">
+                                <a id="editPreviewLink" href="#" target="_blank"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="previewEditedButton()">Быстрый предпросмотр</button>
+                <button type="button" class="btn btn-info" onclick="openEditPreviewInNewWindow()">Серверный предпросмотр</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                <button type="button" class="btn btn-primary" onclick="saveButton()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Функция для предпросмотра в новом окне
+function openPreviewInNewWindow() {
+    try {
+        const textValue = document.getElementById('text').value;
+        const responseValue = document.getElementById('response').value;
+        const url = document.getElementById('url').value;
+        const urlText = document.getElementById('url_text').value;
+        const imageInput = document.getElementById('image');
+        
+        // Проверяем наличие обязательных полей
+        if (!textValue || !responseValue) {
+            alert('Пожалуйста, заполните обязательные поля: Текст кнопки и Ответ');
+        return;
+    }
+    
+        // Создаем FormData для отправки файлов
+    const formData = new FormData();
+        formData.append('csrf_token', '{{ csrf_token }}');
+    formData.append('text', textValue);
+    formData.append('response', responseValue);
+        formData.append('url', url);
+        formData.append('url_text', urlText);
+        
+        // Добавляем файл изображения, если он выбран
+        if (imageInput.files && imageInput.files[0]) {
+            formData.append('image', imageInput.files[0]);
+        }
+        
+        // Отправляем данные на сервер
+    fetch('{{ url_for("preview_button") }}', {
+        method: 'POST',
+            body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+                throw new Error('Ошибка сервера при предварительном просмотре');
+            }
+            return response.text();
+        })
+        .then(html => {
+            // Открываем предварительный просмотр в новом окне
+            const previewWindow = window.open('', 'preview', 'width=800,height=600');
+            previewWindow.document.write(html);
+            previewWindow.document.close();
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+            alert('Произошла ошибка при предварительном просмотре: ' + error.message);
+        });
+    } catch (error) {
+        console.error('Ошибка при открытии предпросмотра в новом окне:', error);
+        alert('Произошла ошибка при открытии предпросмотра: ' + error.message);
+    }
+}
+
+// Функция для предпросмотра кнопки
+function previewButton() {
+    try {
+        // Получаем значения из формы
+        const buttonText = document.getElementById('text').value;
+        const buttonResponse = document.getElementById('response').value;
+        const buttonUrl = document.getElementById('url').value;
+        const buttonUrlText = document.getElementById('url_text').value;
+        const buttonImage = document.getElementById('image').files[0];
+
+        // Проверяем наличие обязательных полей
+        if (!buttonText || !buttonResponse) {
+            alert('Пожалуйста, заполните обязательные поля: Текст кнопки и Ответ');
+            return;
+        }
+
+        // Устанавливаем текст в предпросмотр
+        document.getElementById('buttonPreviewText').textContent = buttonText;
+        
+        // Подготавливаем HTML для ответа
+        let responseHTML = buttonResponse;
+        
+        // Добавляем ссылку, если она указана
+        if (buttonUrl) {
+            const linkText = buttonUrlText || buttonUrl;
+            responseHTML += `<div class="mt-2"><a href="${buttonUrl}" target="_blank">${linkText}</a></div>`;
+        }
+        
+        // Устанавливаем HTML для ответа
+        document.getElementById('responsePreviewText').innerHTML = responseHTML;
+        
+        // Обрабатываем изображение, если оно есть
+        const previewImageContainer = document.getElementById('previewImageContainer');
+        const previewImage = document.getElementById('previewImage');
+        
+        if (buttonImage) {
+            // Создаем временный URL для изображения
+            const imageUrl = URL.createObjectURL(buttonImage);
+            previewImage.src = imageUrl;
+            previewImageContainer.style.display = 'block';
+            
+            // Освобождаем URL, когда он больше не нужен
+            previewImage.onload = function() {
+                URL.revokeObjectURL(imageUrl);
+            };
+        } else {
+            previewImageContainer.style.display = 'none';
+        }
+        
+        // Показываем секцию предпросмотра
+        document.getElementById('previewSection').style.display = 'block';
+        
+        // Прокручиваем страницу к предпросмотру
+        document.getElementById('previewSection').scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        console.error('Ошибка при предпросмотре:', error);
+        alert('Произошла ошибка при предпросмотре: ' + error.message);
+    }
+}
+
+// Функция для предпросмотра редактируемой кнопки
+function previewEditedButton() {
+    try {
+        const text = document.getElementById('editText').value;
+        const response = document.getElementById('editResponse').value;
+        const url = document.getElementById('editUrl').value;
+        const urlText = document.getElementById('editUrlText').value;
+        
+        document.getElementById('editPreviewTitle').textContent = text;
+        document.getElementById('editPreviewResponse').textContent = response;
+        
+        // Проверяем наличие ссылки
+        const linkContainer = document.getElementById('editPreviewLinkContainer');
+        const previewLink = document.getElementById('editPreviewLink');
+        
+        if (url && url.trim() !== '') {
+            previewLink.href = url;
+            previewLink.textContent = urlText || url;
+            linkContainer.style.display = 'block';
+        } else {
+            linkContainer.style.display = 'none';
+        }
+        
+        // Показываем текущее изображение в предпросмотре, если оно есть
+        const imageContainer = document.getElementById('editPreviewImageContainer');
+        const previewImage = document.getElementById('editPreviewImage');
+        const currentImageContainer = document.getElementById('currentImageContainer');
+        
+        if (currentImageContainer.style.display !== 'none' && !document.getElementById('removeImage').checked) {
+            // Используем тот же источник, что и для текущего изображения
+            const currentSrc = document.getElementById('currentImage').src;
+            previewImage.src = currentSrc;
+            imageContainer.style.display = 'block';
+        } else {
+            imageContainer.style.display = 'none';
+        }
+        
+        // Показываем секцию предпросмотра
+        document.getElementById('editPreviewSection').style.display = 'block';
+    } catch (error) {
+        console.error('Ошибка при предпросмотре кнопки:', error);
+        alert('Произошла ошибка при предпросмотре кнопки: ' + error.message);
+    }
+}
+
+function openEditPreviewInNewWindow() {
+    try {
+        const textValue = document.getElementById('editText').value;
+        const responseValue = document.getElementById('editResponse').value;
+        const url = document.getElementById('editUrl').value;
+        const urlText = document.getElementById('editUrlText').value;
+        const imageInput = document.getElementById('editImage');
+        const removeImage = document.getElementById('removeImage').checked;
+        const currentImageContainer = document.getElementById('currentImageContainer');
+        const currentImage = document.getElementById('currentImage');
+        
+        // Проверяем наличие обязательных полей
+        if (!textValue || !responseValue) {
+            alert('Пожалуйста, заполните обязательные поля: Текст кнопки и Ответ');
+        return;
+    }
+    
+        // Создаем FormData для отправки файлов
+    const formData = new FormData();
+        formData.append('csrf_token', '{{ csrf_token }}');
+    formData.append('text', textValue);
+    formData.append('response', responseValue);
+        formData.append('url', url);
+        formData.append('url_text', urlText);
+        
+        // Добавляем файл изображения, если он выбран
+        if (imageInput.files && imageInput.files[0]) {
+            formData.append('image', imageInput.files[0]);
+        } 
+        // Если есть текущее изображение и оно не помечено для удаления
+        else if (currentImageContainer.style.display !== 'none' && !removeImage) {
+            // Если у текущего изображения есть src и он валидный
+            if (currentImage && currentImage.src) {
+                // Создаем запрос для получения текущего изображения
+                fetch(currentImage.src)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        // Получаем имя файла из URL
+                        const url = new URL(currentImage.src);
+                        const pathParts = url.pathname.split('/');
+                        const filename = pathParts[pathParts.length - 1];
+                        
+                        // Создаем новый File объект
+                        const file = new File([blob], filename, { type: blob.type });
+                        formData.append('image', file);
+                        
+                        // Продолжаем отправку формы
+                        sendPreviewRequest(formData);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении текущего изображения:', error);
+                        // Продолжаем без изображения
+                        sendPreviewRequest(formData);
+                    });
+                
+                return; // Выходим, т.к. отправка будет выполнена в коллбэке
+            }
+        }
+        
+        // Если нет текущего изображения или оно помечено для удаления
+        sendPreviewRequest(formData);
+        
+    } catch (error) {
+        console.error('Ошибка при открытии предпросмотра в новом окне:', error);
+        alert('Произошла ошибка при открытии предпросмотра: ' + error.message);
+    }
+}
+
+// Функция для отправки запроса на предпросмотр
+function sendPreviewRequest(formData) {
+    fetch('{{ url_for("preview_button") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка сервера при предварительном просмотре');
+        }
+        return response.text();
+    })
+    .then(html => {
+        // Открываем предварительный просмотр в новом окне
+        const previewWindow = window.open('', 'preview', 'width=800,height=600');
+        previewWindow.document.write(html);
+        previewWindow.document.close();
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при предварительном просмотре: ' + error.message);
+    });
+}
+
+// Функция для открытия модального окна редактирования
+function editButton(button) {
+    try {
+    const id = button.getAttribute('data-id');
+    const text = button.getAttribute('data-text');
+    const response = button.getAttribute('data-response');
+        const url = button.getAttribute('data-url') || '';
+        const urlText = button.getAttribute('data-url-text') || '';
+        const imagePath = button.getAttribute('data-image-path') || '';
+    
+    document.getElementById('editButtonId').value = id;
+    document.getElementById('editText').value = text;
+    document.getElementById('editResponse').value = response;
+        document.getElementById('editUrl').value = url;
+        document.getElementById('editUrlText').value = urlText;
+        
+        // Если у кнопки есть изображение, показываем его
+        const currentImageContainer = document.getElementById('currentImageContainer');
+        const currentImage = document.getElementById('currentImage');
+        
+        if (imagePath) {
+            // Обеспечиваем правильный URL для изображения
+            currentImage.src = '/static/' + imagePath.replace(/\\/g, '/');
+            currentImageContainer.style.display = 'block';
+        } else {
+            currentImageContainer.style.display = 'none';
+        }
+        
+        // Сбрасываем флаг удаления изображения
+        document.getElementById('removeImage').checked = false;
+        
+        // Скрываем предпросмотр при открытии модального окна
+        const previewSection = document.getElementById('editPreviewSection');
+        if (previewSection) {
+            previewSection.style.display = 'none';
+        }
+        
+        // Открываем модальное окно
+    const modal = new bootstrap.Modal(document.getElementById('editButtonModal'));
+    modal.show();
+    } catch (error) {
+        console.error('Ошибка при открытии окна редактирования:', error);
+        alert('Произошла ошибка при открытии окна редактирования: ' + error.message);
+    }
+}
+
+// Функция для сохранения редактируемой кнопки
+function saveButton() {
+    try {
+        // Создаем объект FormData для отправки файлов
+        const formData = new FormData();
+    
+    // Добавляем CSRF-токен
+        formData.append('csrf_token', '{{ csrf_token }}');
+        
+        // Добавляем основные данные
+        formData.append('text', document.getElementById('editText').value);
+        formData.append('response', document.getElementById('editResponse').value);
+        formData.append('url', document.getElementById('editUrl').value);
+        formData.append('url_text', document.getElementById('editUrlText').value);
+        
+        // Если пользователь выбрал удаление изображения
+        if (document.getElementById('removeImage').checked) {
+            formData.append('remove_image', 'true');
+        }
+        
+        // Если пользователь загрузил новое изображение
+        const imageFile = document.getElementById('editImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        
+        // Отправляем данные через fetch API
+        fetch('{{ url_for("edit_button", button_id="") }}' + document.getElementById('editButtonId').value, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();  // Перезагружаем страницу после успешного сохранения
+            } else {
+                response.text().then(text => {
+                    alert('Ошибка при сохранении кнопки: ' + text);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при сохранении кнопки:', error);
+            alert('Произошла ошибка при сохранении кнопки: ' + error.message);
+        });
+    } catch (error) {
+        console.error('Ошибка при сохранении кнопки:', error);
+        alert('Произошла ошибка при сохранении кнопки: ' + error.message);
+    }
+}
+</script>
+{% endblock %} 

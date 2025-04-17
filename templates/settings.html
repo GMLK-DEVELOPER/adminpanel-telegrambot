@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Настройки бота - Telegram Бот{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Настройки бота</h1>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Основные настройки</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('save_settings_handler') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label for="bot_token">Токен бота</label>
+                    <input type="text" class="form-control" id="bot_token" name="bot_token" value="{{ settings.bot_token }}" required>
+                    <small class="form-text text-muted">Получите токен у @BotFather в Telegram</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bot_name">Имя бота</label>
+                    <input type="text" class="form-control" id="bot_name" name="bot_name" value="{{ settings.bot_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="welcome_message">Приветственное сообщение</label>
+                    <textarea class="form-control" id="welcome_message" name="welcome_message" rows="3" required>{{ settings.welcome_message }}</textarea>
+                    <small class="form-text text-muted">Это сообщение будет отправлено пользователю при первом запуске бота</small>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="auto_reply" name="auto_reply" {% if settings.auto_reply %}checked{% endif %}>
+                    <label class="form-check-label" for="auto_reply">Автоматический ответ на сообщения</label>
+                    <small class="form-text text-muted">Бот будет автоматически отвечать на все входящие сообщения</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Статус бота</h6>
+        </div>
+        <div class="card-body">
+            <div class="bot-status">
+                {% if bot_status.is_active %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Бот активен и работает
+                        {% if bot_status.username %}
+                            <div class="mt-2">
+                                <strong>Имя пользователя бота:</strong> @{{ bot_status.username }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Бот не запущен или произошла ошибка
+                        {% if bot_status.error %}
+                            <div class="mt-2">
+                                <strong>Причина:</strong> {{ bot_status.error }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-3">
+                <h6 class="font-weight-bold">Действия</h6>
+                <div class="btn-group">
+                    <form action="{{ url_for('save_settings_handler') }}" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="restart">
+                        <button type="submit" class="btn btn-warning mr-2" onclick="return confirm('Вы уверены, что хотите перезапустить бота?')">
+                            <i class="fas fa-sync"></i> Перезапустить бота
+                        </button>
+                    </form>
+                    <form action="{{ url_for('save_settings_handler') }}" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="stop">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите остановить бота?')">
+                            <i class="fas fa-stop"></i> Остановить бота
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Добавляем подтверждение при изменении токена
+    var originalToken = $('#bot_token').val();
+    $('form').on('submit', function(e) {
+        var newToken = $('#bot_token').val();
+        if (newToken !== originalToken) {
+            if (!confirm('Изменение токена приведет к перезапуску бота. Продолжить?')) {
+                e.preventDefault();
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

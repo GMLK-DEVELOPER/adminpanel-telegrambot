@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление базой данных - Telegram Бот{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Управление базой данных</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Экспорт данных
+                </div>
+                <div class="card-body">
+                    <p>Экспортируйте все данные бота в JSON-файл для создания резервной копии.</p>
+                    <form action="{{ url_for('export_data') }}" method="get">
+                        <button type="submit" class="btn btn-primary">Экспорт данных</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    Импорт данных
+                </div>
+                <div class="card-body">
+                    <p>Импортируйте данные из ранее созданного JSON-файла.</p>
+                    <form action="{{ url_for('import_data') }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="mb-3">
+                            <label for="import_file" class="form-label">Выберите файл JSON</label>
+                            <input class="form-control" type="file" id="import_file" name="import_file" accept=".json" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Импорт данных</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    Резервное копирование
+                </div>
+                <div class="card-body">
+                    <p>Создайте резервную копию данных бота.</p>
+                    <form action="{{ url_for('create_backup') }}" method="get">
+                        <button type="submit" class="btn btn-info">Создать резервную копию</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    Оптимизация базы данных
+                </div>
+                <div class="card-body">
+                    <p>Оптимизируйте базу данных для улучшения производительности.</p>
+                    <form action="{{ url_for('optimize_database') }}" method="get">
+                        <button type="submit" class="btn btn-secondary">Оптимизировать базу данных</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    Очистка базы данных
+                </div>
+                <div class="card-body">
+                    <p>Внимание! Эта операция удалит все данные из базы данных бота.</p>
+                    <form action="{{ url_for('clear_database') }}" method="get">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите очистить базу данных? Все данные будут удалены!')">Очистить базу данных</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
